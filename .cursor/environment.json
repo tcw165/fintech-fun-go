@@ -1,0 +1,20 @@
+{
+  "name": "fintech-fun",
+  "user": "ubuntu",
+  "install": "bash .cursor/install.sh",
+  "start": "bash .cursor/start.sh",
+  "terminals": [
+    {
+      "name": "api_server",
+      "command": "bazel run //api_server/cmd:api_server",
+      "description": "HTTP API on :8080 (GET /healthz, /fold, /search, /v1/graph). Reads Neo4j at bolt://localhost:7687 and Qdrant at http://localhost:6333."
+    }
+  ],
+  "ports": [
+    { "name": "api_server", "port": 8080 },
+    { "name": "neo4j-browser", "port": 7474 },
+    { "name": "neo4j-bolt", "port": 7687 },
+    { "name": "qdrant-http", "port": 6333 },
+    { "name": "qdrant-grpc", "port": 6334 }
+  ]
+}
