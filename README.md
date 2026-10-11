@@ -10,30 +10,22 @@ Dev rules (naming, modules): [`AGENTS.md`](AGENTS.md).
 
 - Bazel 8.2 (Bazelisk is fine) and Go 1.24
 - `just`
-- For the local cluster: Docker (Desktop on Mac), `minikube`, `kubectl`
-- Optional: `k9s`
-
-`just deps` checks that Docker is installed and running.
+- Docker (Desktop on Mac) for Compose
 
 ## Usage
 
-Unit tests (no cluster):
-
 ```bash
-just update-build-files   # sync BUILD.bazel from Go imports, if you changed imports
-bazel test //graph/... //api_server/... //ingest_jobs/... //infra/activation/...
+just up              # build the api-server image, start or restart Compose
+just run             # alias of just up
+just healthz         # GET /healthz on localhost:8000
+just port-forward    # tunnel localhost:8000 via Pinggy (fails if PINGGY_API_KEY is missing)
+just down            # stop Compose
 ```
 
-Local minikube (profile `fintech-fun`):
+Unit tests:
 
 ```bash
-just up              # start cluster, load images, apply overlay
-just healthz         # GET /healthz
-just fold square 10  # GET /fold?q=square&qty=10
-just search "LivePerson stock merger"
-just run             # api-server on localhost:8000
-just port-forward    # tunnel localhost:8000 via Pinggy (fails if PINGGY_API_KEY is missing)
-just down            # stop the VM
+bazel test //graph/... //api_server/... //ingest_jobs/... //infra/activation/...
 ```
 
 Offline ingest dry-run (fixture file, no writes to Neo4j/Qdrant):
@@ -42,5 +34,3 @@ Offline ingest dry-run (fixture file, no writes to Neo4j/Qdrant):
 bazel run //ingest_jobs/corporate_actions -- --dry-run --file \
   "$PWD/agents/skills/ingest/robinhood/corporate_actions/testdata/tracker_sept_2026.txt"
 ```
-
-`just` lists every recipe. The corporate-actions CronJob starts suspended; use `just refresh` (live ingest) after Robinhood is reachable.
