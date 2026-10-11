@@ -171,6 +171,15 @@ gap-a: wait healthz smoke gold
 k9s:
     k9s --context {{profile}} --namespace {{ns}}
 
+# Public tunnel to localhost:8000 via Pinggy. Requires PINGGY_API_KEY.
+port-forward:
+    ssh \
+      -p 443 \
+      -R0:localhost:8000 \
+      -o StrictHostKeyChecking=no \
+      -o ServerAliveInterval=30 \
+      "{{env_var('PINGGY_API_KEY')}}@free.pinggy.io"
+
 # Re-fetch the tracker, prefix-dedup the full history, MERGE only the new suffix.
 # waiting rows stay; a later cashed_out/now_different_stock is a new Event.
 refresh:
