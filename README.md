@@ -31,6 +31,7 @@ just up              # start cluster, load images, apply overlay
 just healthz         # GET /healthz
 just fold square 10  # GET /fold?q=square&qty=10
 just search "LivePerson stock merger"
+just port-forward    # tunnel localhost:8000 via Pinggy (needs PINGGY_API_KEY)
 just down            # stop the VM
 ```
 
