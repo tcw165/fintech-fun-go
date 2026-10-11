@@ -171,14 +171,24 @@ gap-a: wait healthz smoke gold
 k9s:
     k9s --context {{profile}} --namespace {{ns}}
 
-# Public tunnel to localhost:8000 via Pinggy. Requires PINGGY_API_KEY.
+# Cluster api-server (8080) on localhost:8000, for `just port-forward`.
+run:
+    kubectl --context {{profile}} -n {{ns}} port-forward svc/api-server 8000:8080
+
+# Public tunnel to localhost:8000 via Pinggy. Fails when PINGGY_API_KEY is missing.
 port-forward:
-    ssh \
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [[ -z "${PINGGY_API_KEY:-}" ]]; then
+      echo "PINGGY_API_KEY not found" >&2
+      exit 1
+    fi
+    exec ssh \
       -p 443 \
       -R0:localhost:8000 \
       -o StrictHostKeyChecking=no \
       -o ServerAliveInterval=30 \
-      "{{env_var('PINGGY_API_KEY')}}@free.pinggy.io"
+      "${PINGGY_API_KEY}@free.pinggy.io"
 
 # Re-fetch the tracker, prefix-dedup the full history, MERGE only the new suffix.
 # waiting rows stay; a later cashed_out/now_different_stock is a new Event.
