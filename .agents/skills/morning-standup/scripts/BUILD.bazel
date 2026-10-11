@@ -1,0 +1,2 @@
+# Standup script invoked by the skill.
+exports_files(["standup.sh"])
