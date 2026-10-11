@@ -183,6 +183,32 @@ while IFS= read -r branch; do
 done < <(git -C "$PRIMARY_PATH" branch --format='%(refname:short)')
 ```
 
+### Step 8: List every worktree, its branch, and its PR
+
+After cleanup, print one block per discovered checkout. Put the path, the branch, and — when Graphite has an open PR — the `PR #` line and Graphite link on their own lines so a long branch name does not wrap into the path.
+
+```bash
+echo "Worktrees:"
+while IFS= read -r wt_path; do
+  wt_branch=$(git -C "$wt_path" branch --show-current)
+  echo "- $wt_path"
+  if [ -z "$wt_branch" ]; then
+    echo "  <detached>"
+    continue
+  fi
+  echo "  $wt_branch"
+  info=$(gt info --branch "$wt_branch" --cwd "$wt_path" 2>/dev/null || true)
+  pr_line=$(printf '%s\n' "$info" | sed -n '/^PR #/p' | head -1)
+  pr_url=$(printf '%s\n' "$info" | sed -n '/^https:\/\/app\.graphite\.com\//p' | head -1)
+  if [ -n "$pr_line" ]; then
+    echo "  $pr_line"
+  fi
+  if [ -n "$pr_url" ]; then
+    echo "  $pr_url"
+  fi
+done < "$WT_LIST"
+```
+
 ## One-shot script
 
 Prefer `scripts/standup.sh`. If that file is missing, run this block from any checkout of the repo:
@@ -282,11 +308,31 @@ while IFS= read -r branch; do
     gt delete "$branch" -q --cwd "$PRIMARY_PATH"
   fi
 done < <(git -C "$PRIMARY_PATH" branch --format='%(refname:short)')
+
+echo "Worktrees:"
+while IFS= read -r wt_path; do
+  wt_branch=$(git -C "$wt_path" branch --show-current)
+  echo "- $wt_path"
+  if [ -z "$wt_branch" ]; then
+    echo "  <detached>"
+    continue
+  fi
+  echo "  $wt_branch"
+  info=$(gt info --branch "$wt_branch" --cwd "$wt_path" 2>/dev/null || true)
+  pr_line=$(printf '%s\n' "$info" | sed -n '/^PR #/p' | head -1)
+  pr_url=$(printf '%s\n' "$info" | sed -n '/^https:\/\/app\.graphite\.com\//p' | head -1)
+  if [ -n "$pr_line" ]; then
+    echo "  $pr_line"
+  fi
+  if [ -n "$pr_url" ]; then
+    echo "  $pr_url"
+  fi
+done < "$WT_LIST"
 rm -f "$WT_LIST"
 ```
 
 ## After standup
 
-- Run `gt log` to review your stack.
+- Paste the script's `Worktrees:` block as a code block. One checkout per entry: path, branch, and the Graphite `PR #` line plus link when the branch has an open PR. Include idle `dev/wtN` worktrees.
 - Start new work only after sync completes on **all** worktrees.
 - Use `/graphite` for create/modify/submit when making changes.
