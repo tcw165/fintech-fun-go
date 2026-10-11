@@ -1,0 +1,2 @@
+# Agent skill: /morning-standup. Docs only.
+exports_files(["SKILL.md"])
