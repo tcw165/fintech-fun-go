@@ -133,3 +133,24 @@ while IFS= read -r branch; do
     gt delete "$branch" -q --cwd "$PRIMARY_PATH"
   fi
 done < <(git -C "$PRIMARY_PATH" branch --format='%(refname:short)')
+
+# Step 8: list every worktree, its branch, and its Graphite PR when one exists
+echo "Worktrees:"
+while IFS= read -r wt_path; do
+  wt_branch=$(git -C "$wt_path" branch --show-current)
+  echo "- $wt_path"
+  if [ -z "$wt_branch" ]; then
+    echo "  <detached>"
+    continue
+  fi
+  echo "  $wt_branch"
+  info=$(gt info --branch "$wt_branch" --cwd "$wt_path" 2>/dev/null || true)
+  pr_line=$(printf '%s\n' "$info" | sed -n '/^PR #/p' | head -1)
+  pr_url=$(printf '%s\n' "$info" | sed -n '/^https:\/\/app\.graphite\.com\//p' | head -1)
+  if [ -n "$pr_line" ]; then
+    echo "  $pr_line"
+  fi
+  if [ -n "$pr_url" ]; then
+    echo "  $pr_url"
+  fi
+done < "$WT_LIST"
